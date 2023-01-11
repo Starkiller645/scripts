@@ -1,0 +1,61 @@
+#!/bin/bash
+
+function install_league() {
+	echo -e "\e[1;31m==> [ERROR]\e[0;1m This part of the program is not yet implemented! Try again later..."
+	exit;
+}
+
+echo -e "\e[1;34m==> \e[0;1mThis script will setup the \e[34mLeague of Legends\e[0;1m .desktop file";
+echo -ne "\e[1;34m==> \e[0;1mPlease press \e[1;32m[ENTER]\e[0;1m to continue\n    \e[0m(or \e[1;32m[Ctrl+C]\e[0m to exit): ";
+read;
+RIOT_DIRECTORY="$HOME/.wine/drive_c/Riot Games";
+echo -ne "\e[1;34m==> \e[0;1mIs \e[1;34mLeague of Legends\e[0;1m or the \e[1;34mRiot Client\e[0;1m already installed on this computer?\n    \e[36m(Y/n)\e[0m: \e[1;36m";
+read TEMP_RIOT_YN;
+if [ "$TEMP_RIOT_YN" == "n" ] || [ "$TEMP_RIOT_YN" == "n" ]; then
+	install_league;
+fi;
+echo -ne "\e[1;34m==> \e[0;1mWhat is the install directory of your Riot Games products?\n    \e[0m(default: \e[33m~/.wine/drive_c/Riot Games\e[0m): \e[1;32m";
+read TEMP_RIOT_DIRECTORY
+if [ "$TEMP_RIOT_DIRECTORY" != "" ]; then
+	RIOT_DIRECTORY="$TEMP_RIOT_DIRECTORY";
+fi;
+echo -e "\e[1;34m==> \e[0;1mGreat, we'll use \e[1;33m$RIOT_DIRECTORY\e[0;1m as the base file path."
+#echo -e "\e[1;34m==> \e[0;1mThis script assumes you have \e[1;34mLutris\e[0;1m installed in its default configuration.";
+#echo -ne "    Do you have Lutris installed \e[36m(Y/n)\e[0m: \e[1;32m";
+#read TEMP_LUTRIS_YN
+#if [ "$TEMP_LUTRIS_YN" == "n" ] || [ "$TEMP_LUTRIS_YN" == "n" ]; then
+	#echo -e "\e[1;31m==> [ERROR]\e[0;1m This script requires \e[1;34mLutris\e[0;1m to be installed. Please install it using\n    your package manager and run the script again.";
+	#exit;
+#fi;
+echo -e "\e[1;34m==> \e[0;1mWe will now download the program you will use to run League. It will be saved in \e[1;33m$HOME/.league/wine-ge-lol/\e[0;1m";
+
+mkdir -p "$HOME/.league/wine-ge-lol/";
+
+wget "https://objects.githubusercontent.com/github-production-release-asset-2e65be/223100333/63eef52a-667b-4c10-850d-0c5396a9edfa?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20230111%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230111T171225Z&X-Amz-Expires=300&X-Amz-Signature=ad2bff25402ed3835b36b3879285a274677308a6345aa8e199c3e70667ac7318&X-Amz-SignedHeaders=host&actor_id=59282118&key_id=0&repo_id=223100333&response-content-disposition=attachment%3B filename%3Dwine-lutris-ge-lol-7.0-5-x86_64.tar.xz&response-content-type=application%2Foctet-stream" -O "$HOME/.league/wine-ge-lol.tar.xz"
+
+cd "$HOME/.league/";
+xz -d "wine-ge-lol.tar.xz";
+tar xf "wine-ge-lol.tar";
+mv lutris-ge-lol-7.0-5-x86_64/* wine-ge-lol/;
+rm wine-ge-lol.tar;
+
+if [ ! -f "$HOME/.league/wine-ge-lol/bin/wine" ]; then
+	echo -e "\e[1;31m==> [ERROR]\e[0;1m Something seems to have gone wrong installing Wine. Please delete ~/.league and try again...";
+	exit;
+fi;
+
+echo -e "\e[1;34m==> \e[0;1mWriting the League of Legends startup script, which can be run at \e[1;33m$HOME/.local/bin/league-of-legends\e[0;1m...";
+mkdir -p "$HOME/.local/bin/";
+touch "$HOME/.local/bin/league-of-legends";
+echo "echo -e '\e[1;34m==> \e[0;1mStarting League of Legends from \e[1;33m$RIOT_DIRECTORY/Riot Games/RiotClientServices.exe\e[0;1m...\e[0m'\n$HOME/.league/wine-ge-lol/bin/wine '$RIOT_DIRECTORY/Riot Games/RiotClientServices.exe --locale=en_GB --launch-product=league_of_legends --launch-patchline=live'" > "$HOME/.local/bin/league-of-legends";
+chmod +x "$HOME/.local/bin/league-of-legends";
+
+echo -e "\e[1;34m==> \e[0;1mWriting the League of Legends desktop file, installing to \e[1;33m$HOME/.local/share/applications/league-of-legends.desktop\e[0;1m...";
+
+mkdir -p "$HOME/.local/share/applications";
+
+echo "[Desktop Entry]\nName=League of Legends\nExec=$HOME/.local/bin/league-of-legends\nType=Application\nStartupNotify=true\nComment=League of Legends, an online MOBA game\nIcon=$HOME/.league/icon.png\nTerminal=false\nCategories=Game" > "$HOME/.local/share/applications/league-of-legends.desktop";
+echo -e "\e[1;34m==> \e[0;1mRebuilding system config cache (don't worry if this fails!)...";
+kbuildsycoca5;
+echo -e "\e[1;34m==> \e[0;1mAll done! You should now be able to launch League by selecting the \e[1;34mLeague of Legends\e[0;1mentry in your application menu";
+echo -e "\e[1;34m==> \e[0;1mor by running the script at \e[1;33m$HOME/.local/bin/league-of-legends\e[0;1m!\e[0m"
