@@ -5,6 +5,19 @@ function install_league() {
 	exit;
 }
 
+function uninstall_shortcuts() {
+	echo -e "\e[1;33m==> \e[0;1mUninstalling the shortcuts to League (this will not remove the game itself...)";
+	rm "$HOME/.local/share/applications/league-of-legends.desktop";
+	rm "$HOME/.local/bin/league-of-legends";
+	rm -r "$HOME/.league";
+	echo -e "\e[1;34m==> \e[0;1mDone!";
+}
+
+if [ "$1" == "-d" ] || [ "$1" == "--delete" ]; then
+	uninstall_shortcuts;
+	exit;
+fi;
+
 echo -e "\e[1;34m==> \e[0;1mThis script will setup the \e[34mLeague of Legends\e[0;1m .desktop file";
 echo -ne "\e[1;34m==> \e[0;1mPlease press \e[1;32m[ENTER]\e[0;1m to continue\n    \e[0m(or \e[1;32m[Ctrl+C]\e[0m to exit): ";
 read;
@@ -27,13 +40,17 @@ echo -e "\e[1;34m==> \e[0;1mGreat, we'll use \e[1;33m$RIOT_DIRECTORY\e[0;1m as t
 	#echo -e "\e[1;31m==> [ERROR]\e[0;1m This script requires \e[1;34mLutris\e[0;1m to be installed. Please install it using\n    your package manager and run the script again.";
 	#exit;
 #fi;
-echo -e "\e[1;34m==> \e[0;1mWe will now download the program you will use to run League. It will be saved in \e[1;33m$HOME/.league/wine-ge-lol/\e[0;1m";
+echo -e "\e[1;34m==> \e[0;1mDownloading the program you will use to run League (Wine). It will be saved in \e[1;33m$HOME/.league/wine-ge-lol/\e[0m";
 
 mkdir -p "$HOME/.league/wine-ge-lol/";
 
-wget "https://github.com/Starkiller645/scripts/raw/master/assets/wine-lutris-ge-lol-7.0-5-x86_64.tar.xz" -O "$HOME/.league/wine-ge-lol.tar.xz"
+wget "https://github.com/Starkiller645/scripts/raw/master/assets/wine-lutris-ge-lol-7.0-5-x86_64.tar.xz" -q --show-progress -O "$HOME/.league/wine-ge-lol.tar.xz"
 
+echo -e "\e[1F\e[K\e[1;32m==> \e[0;1mDone!";
+
+CURRENT_DIR="$(pwd)"
 cd "$HOME/.league/";
+echo -e "\e[1;34m==> \e[0;1mUnzipping Wine distribution...\e[0m";
 xz -d "wine-ge-lol.tar.xz";
 tar xf "wine-ge-lol.tar";
 mv lutris-ge-lol-7.0-5-x86_64/* wine-ge-lol/;
@@ -47,16 +64,20 @@ fi;
 echo -e "\e[1;34m==> \e[0;1mWriting the League of Legends startup script, which can be run at \e[1;33m$HOME/.local/bin/league-of-legends\e[0;1m...";
 mkdir -p "$HOME/.local/bin/";
 touch "$HOME/.local/bin/league-of-legends";
-echo "echo -e '\e[1;34m==> \e[0;1mStarting League of Legends from \e[1;33m$RIOT_DIRECTORY/Riot Games/RiotClientServices.exe\e[0;1m...\e[0m'" >> "$HOME/.local/bin/league-of-legends";
-echo "$HOME/.league/wine-ge-lol/bin/wine '$RIOT_DIRECTORY/Riot Games/RiotClientServices.exe --locale=en_GB --launch-product=league_of_legends --launch-patchline=live'" >> "$HOME/.local/bin/league-of-legends";
+echo "echo -e '\e[1;34m==> \e[0;1mStarting League of Legends from \e[1;33m$RIOT_DIRECTORY/Riot Client/RiotClientServices.exe\e[0;1m...\e[0m'" >> "$HOME/.local/bin/league-of-legends";
+echo "$HOME/.league/wine-ge-lol/bin/wine \"$RIOT_DIRECTORY/Riot Client/RiotClientServices.exe\" --locale=en_GB --launch-product=league_of_legends --launch-patchline=live" >> "$HOME/.local/bin/league-of-legends";
 chmod +x "$HOME/.local/bin/league-of-legends";
 
 echo -e "\e[1;34m==> \e[0;1mWriting the League of Legends desktop file, installing to \e[1;33m$HOME/.local/share/applications/league-of-legends.desktop\e[0;1m...";
 
 mkdir -p "$HOME/.local/share/applications";
 
+echo -e "\e[1;34m==> \e[0;1mDownloading the icon for League...\e[0m";
+wget "https://github.com/Starkiller645/scripts/raw/master/assets/icon.png" -q --show-progress -O "$HOME/.league/icon.png";
+echo -e "\e[1F\e[K\e[1;32m==> \e[0;1mDone!";
+
 echo -e "[Desktop Entry]\nName=League of Legends\nExec=$HOME/.local/bin/league-of-legends\nType=Application\nStartupNotify=true\nComment=League of Legends, an online MOBA game\nIcon=$HOME/.league/icon.png\nTerminal=false\nCategories=Game" > "$HOME/.local/share/applications/league-of-legends.desktop";
 echo -e "\e[1;34m==> \e[0;1mRebuilding system config cache (don't worry if this fails!)...";
-kbuildsycoca5;
-echo -e "\e[1;34m==> \e[0;1mAll done! You should now be able to launch League by selecting the \e[1;34mLeague of Legends\e[0;1mentry in your application menu";
+kbuildsycoca5 2&> /dev/null;
+echo -e "\e[1;34m==> \e[0;1mAll done! You should now be able to launch League by selecting the \e[1;34mLeague of Legends\e[0;1m entry in your application menu";
 echo -e "\e[1;34m==> \e[0;1mor by running the script at \e[1;33m$HOME/.local/bin/league-of-legends\e[0;1m!\e[0m"
